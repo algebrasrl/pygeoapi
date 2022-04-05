@@ -1242,7 +1242,8 @@ class API:
         properties = []
         reserved_fieldnames = ['bbox', 'f', 'lang', 'limit', 'offset',
                                'resulttype', 'datetime', 'sortby',
-                               'properties', 'skipGeometry', 'q']
+                               'properties', 'skipGeometry', 'q',
+                               'request']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
@@ -1409,6 +1410,8 @@ class API:
         LOGGER.debug('skipGeometry: {}'.format(skip_geometry))
         LOGGER.debug('language: {}'.format(prv_locale))
         LOGGER.debug('q: {}'.format(q))
+        # mine
+        LOGGER.debug('request: {}'.format(request))
 
         try:
             content = p.query(offset=offset, limit=limit,
@@ -1417,7 +1420,8 @@ class API:
                               sortby=sortby,
                               select_properties=select_properties,
                               skip_geometry=skip_geometry,
-                              q=q, language=prv_locale)
+                              q=q, language=prv_locale,
+                              request=request)  # mine
         except ProviderConnectionError as err:
             LOGGER.error(err)
             msg = 'connection error (check logs)'
@@ -1597,7 +1601,8 @@ class API:
         reserved_fieldnames = ['bbox', 'f', 'limit', 'offset',
                                'resulttype', 'datetime', 'sortby',
                                'properties', 'skipGeometry', 'q',
-                               'filter-lang']
+                               'filter-lang',
+                               'request']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
@@ -1771,6 +1776,8 @@ class API:
         LOGGER.debug('skipGeometry: {}'.format(skip_geometry))
         LOGGER.debug('q: {}'.format(q))
         LOGGER.debug('filter-lang: {}'.format(filter_lang))
+        # mine
+        LOGGER.debug('request: {}'.format(request))
 
         LOGGER.debug('Processing headers')
 
@@ -1804,7 +1811,8 @@ class API:
                               select_properties=select_properties,
                               skip_geometry=skip_geometry,
                               q=q,
-                              filterq=filter_)
+                              filterq=filter_,
+                              request=request)  # mine
         except (UnicodeDecodeError, AttributeError):
             pass
 
@@ -1862,7 +1870,8 @@ class API:
 
         try:
             LOGGER.debug('Fetching id {}'.format(identifier))
-            content = p.get(identifier, language=prv_locale)
+            content = p.get(identifier, language=prv_locale,
+                            request=request)  # mine
         except ProviderConnectionError as err:
             LOGGER.error(err)
             msg = 'connection error (check logs)'
