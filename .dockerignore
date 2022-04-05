@@ -1,0 +1,11 @@
+.*
+!.coveragerc
+!.env
+!.pylintrc
+
+private/users/*
+public/media/*
+public/static/*
+
+.git/*
+
