@@ -1243,7 +1243,7 @@ class API:
         reserved_fieldnames = ['bbox', 'f', 'lang', 'limit', 'offset',
                                'resulttype', 'datetime', 'sortby',
                                'properties', 'skipGeometry', 'q',
-                               'request']  # mine
+                               'request', 'tolerance']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
@@ -1602,7 +1602,7 @@ class API:
                                'resulttype', 'datetime', 'sortby',
                                'properties', 'skipGeometry', 'q',
                                'filter-lang',
-                               'request']  # mine
+                               'request', 'tolerance']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
