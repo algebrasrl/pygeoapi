@@ -11,4 +11,4 @@ build-docker:
 	$(DOCKER) build . --network host -f ./Dockerfile -t algebrasrl/${IMAGE_NAME}
 
 push-docker:
-	$(DOCKER) push algebrasrl/${IMAGE_NAME}:${VERSION}
+	$(DOCKER) push algebrasrl/${IMAGE_NAME}
