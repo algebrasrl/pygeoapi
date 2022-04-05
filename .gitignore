@@ -112,3 +112,5 @@ ENV/
 
 
 .DS_Store
+
+.idea
