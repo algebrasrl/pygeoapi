@@ -52,6 +52,13 @@ def config():
 
 
 @pytest.fixture()
+def config_hidden_resources():
+    filename = 'pygeoapi-test-config-hidden-resources.yml'
+    with open(get_test_file_path(filename)) as fh:
+        return yaml_load(fh)
+
+
+@pytest.fixture()
 def openapi():
     with open(get_test_file_path('pygeoapi-test-openapi.yml')) as fh:
         return yaml_load(fh)
@@ -60,6 +67,11 @@ def openapi():
 @pytest.fixture()
 def api_(config):
     return API(config)
+
+
+@pytest.fixture()
+def api_hidden_resources(config_hidden_resources):
+    return API(config_hidden_resources)
 
 
 def test_apirequest(api_):
@@ -234,6 +246,8 @@ def test_api(config, api_, openapi):
     rsp_headers, code, response = api_.openapi(req, openapi)
     assert rsp_headers['Content-Language'] == 'en-US'
     assert code == 400
+
+    assert api_.get_collections_url() == 'http://localhost:5000/collections'
 
 
 def test_api_exception(config, api_):
@@ -413,7 +427,7 @@ def test_conformance(config, api_):
 
     assert isinstance(root, dict)
     assert 'conformsTo' in root
-    assert len(root['conformsTo']) == 25
+    assert len(root['conformsTo']) == 20
 
     req = mock_request({'f': 'foo'})
     rsp_headers, code, response = api_.conformance(req)
@@ -490,6 +504,24 @@ def test_describe_collections(config, api_):
 
     assert collection['id'] == 'gdps-temperature'
     assert len(collection['links']) == 12
+
+    # hiearchical collections
+    rsp_headers, code, response = api_.describe_collections(
+        req, 'naturalearth/lakes')
+    collection = json.loads(response)
+    assert collection['id'] == 'naturalearth/lakes'
+
+
+def test_describe_collections_hidden_resources(
+        config_hidden_resources, api_hidden_resources):
+    req = mock_request({})
+    rsp_headers, code, response = api_hidden_resources.describe_collections(req)  # noqa
+    assert code == 200
+
+    assert len(config_hidden_resources['resources']) == 3
+
+    collections = json.loads(response)
+    assert len(collections['collections']) == 1
 
 
 def test_get_collection_queryables(config, api_):
@@ -775,7 +807,8 @@ def test_get_collection_items(config, api_):
     assert code == 200
 
     req = mock_request({'scalerank': 1})
-    rsp_headers, code, response = api_.get_collection_items(req, 'lakes')
+    rsp_headers, code, response = api_.get_collection_items(
+        req, 'naturalearth/lakes')
     features = json.loads(response)
 
     assert len(features['features']) == 10
@@ -783,7 +816,8 @@ def test_get_collection_items(config, api_):
     assert features['numberReturned'] == 10
 
     req = mock_request({'datetime': '2005-04-22'})
-    rsp_headers, code, response = api_.get_collection_items(req, 'lakes')
+    rsp_headers, code, response = api_.get_collection_items(
+        req, 'naturalearth/lakes')
 
     assert code == 400
 
@@ -1081,12 +1115,14 @@ def test_get_collection_tiles(config, api_):
     rsp_headers, code, response = api_.get_collection_tiles(req, 'obs')
     assert code == 400
 
-    rsp_headers, code, response = api_.get_collection_tiles(req, 'lakes')
+    rsp_headers, code, response = api_.get_collection_tiles(
+        req, 'naturalearth/lakes')
     assert code == 200
 
     # Language settings should be ignored (return system default)
     req = mock_request({'lang': 'fr'})
-    rsp_headers, code, response = api_.get_collection_tiles(req, 'lakes')
+    rsp_headers, code, response = api_.get_collection_tiles(
+        req, 'naturalearth/lakes')
     assert rsp_headers['Content-Language'] == 'en-US'
     content = json.loads(response)
     assert content['description'] == 'lakes of the world, public domain'
