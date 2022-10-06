@@ -266,6 +266,7 @@ class APIRequest:
     :param supported_locales:   List or set of supported Locale instances.
     """
 
+    # mine
     @staticmethod
     def get_consumer_sso_id(request):
         return request.headers.get('X-Consumer-Custom-Id', None)
@@ -1334,7 +1335,7 @@ class API:
         reserved_fieldnames = ['bbox', 'f', 'lang', 'limit', 'offset',
                                'resulttype', 'datetime', 'sortby',
                                'properties', 'skipGeometry', 'q',
-                               'request', 'tolerance']  # mine
+                               'tolerance']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
@@ -1684,7 +1685,7 @@ class API:
                                'resulttype', 'datetime', 'sortby',
                                'properties', 'skipGeometry', 'q',
                                'filter-lang',
-                               'request', 'tolerance']  # mine
+                               'tolerance']  # mine
 
         collections = filter_dict_by_key_value(self.config['resources'],
                                                'type', 'collection')
