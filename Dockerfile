@@ -105,16 +105,16 @@ RUN \
     && rm -rf /var/lib/apt/lists/*
 
 
-# GDAL
-RUN apt update && apt install -y \
-        build-essential wget ca-certificates unzip pkg-config git \
-        libxml2 libxml2-dev gettext \
-        zlib1g-dev libfreexl-dev libxml2-dev libgit2-dev libgeos-dev libproj-dev \
-        libxslt1-dev libjpeg-dev libpng-dev libpq-dev \
-        sqlite3 spatialite-bin libsqlite3-mod-spatialite libsqlite3-dev \
-        libgdal-dev libgdal30 gdal-bin && rm -rf /var/lib/apt/lists/*
-RUN export CPLUS_INCLUDE_PATH=/usr/include/gdal && export C_INCLUDE_PATH=/usr/include/gdal &&  pip install \
-    GDAL==$(gdal-config --version | awk -F'[.]' '{print $1"."$2}')
+## GDAL
+#RUN apt update && apt install -y \
+#        build-essential wget ca-certificates unzip pkg-config git \
+#        libxml2 libxml2-dev gettext \
+#        zlib1g-dev libfreexl-dev libxml2-dev libgit2-dev libgeos-dev libproj-dev \
+#        libxslt1-dev libjpeg-dev libpng-dev libpq-dev \
+#        sqlite3 spatialite-bin libsqlite3-mod-spatialite libsqlite3-dev \
+#        libgdal-dev libgdal30 gdal-bin && rm -rf /var/lib/apt/lists/*
+#RUN export CPLUS_INCLUDE_PATH=/usr/include/gdal && export C_INCLUDE_PATH=/usr/include/gdal &&  pip install \
+#    GDAL==$(gdal-config --version | awk -F'[.]' '{print $1"."$2}')
 
 
 ADD . /pygeoapi
