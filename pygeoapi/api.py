@@ -264,6 +264,36 @@ class APIRequest:
     :param request:             The web platform specific Request instance.
     :param supported_locales:   List or set of supported Locale instances.
     """
+
+    @staticmethod
+    def get_consumer_sso_id(request):
+        return request.headers.get('X-Consumer-Custom-Id', None)
+
+    @staticmethod
+    def get_consumer_acls(request):
+        _permissions = ('r--', 'rw-', 'rwx')
+        acls = []
+        if request:
+            LOGGER.debug('Request headers: {}'.format(request.headers))
+
+            consumer__custom_id = request.headers.get('X-Consumer-Custom-Id', None)
+            if consumer__custom_id is not None:
+                for p in _permissions:
+                    acls.append('user:' + consumer__custom_id + ':' + p)
+
+            consumer__groups = request.headers.get('X-Consumer-Groups', None)
+            if consumer__groups is None:
+                consumer__groups = []
+            else:
+                consumer__groups = list(
+                    filter(lambda x: x != '', map(lambda x: x.strip(), consumer__groups.split(','))))
+            for g in consumer__groups:
+                for p in _permissions:
+                    acls.append('group:' + g + ':' + p)
+
+            LOGGER.debug('Consumer ACLs: {}'.format(acls))
+        return acls
+
     def __init__(self, request, supported_locales):
         # Set default request data
         self._data = b''
@@ -286,6 +316,10 @@ class APIRequest:
 
         # Get received headers
         self._headers = self.get_request_headers(request.headers)
+
+        # mine
+        self._dssoa_consumer_sso_id = self.get_consumer_sso_id(request)
+        self._dssoa_consumer_acls = self.get_consumer_acls(request)
 
     @classmethod
     def with_data(cls, request, supported_locales) -> 'APIRequest':
@@ -1435,8 +1469,6 @@ class API:
         LOGGER.debug('skipGeometry: {}'.format(skip_geometry))
         LOGGER.debug('language: {}'.format(prv_locale))
         LOGGER.debug('q: {}'.format(q))
-        # mine
-        LOGGER.debug('request: {}'.format(request))
 
         try:
             content = p.query(offset=offset, limit=limit,
@@ -1446,7 +1478,9 @@ class API:
                               select_properties=select_properties,
                               skip_geometry=skip_geometry,
                               q=q, language=prv_locale,
-                              request=request)  # mine
+                              consumer_sso_id=request._dssoa_consumer_sso_id,
+                              consumer_acls=request._dssoa_consumer_acls,
+                              tolerance=request.params.get('tolerance', None))  # mine
         except ProviderConnectionError as err:
             LOGGER.error(err)
             msg = 'connection error (check logs)'
@@ -1796,8 +1830,6 @@ class API:
         LOGGER.debug('skipGeometry: {}'.format(skip_geometry))
         LOGGER.debug('q: {}'.format(q))
         LOGGER.debug('filter-lang: {}'.format(filter_lang))
-        # mine
-        LOGGER.debug('request: {}'.format(request))
 
         LOGGER.debug('Processing headers')
 
@@ -1832,7 +1864,9 @@ class API:
                               skip_geometry=skip_geometry,
                               q=q,
                               filterq=filter_,
-                              request=request)  # mine
+                              consumer_sso_id=request._dssoa_consumer_sso_id,
+                              consumer_acls=request._dssoa_consumer_acls,
+                              tolerance=request.params.get('tolerance', None))  # mine
         except (UnicodeDecodeError, AttributeError):
             pass
 
@@ -1891,7 +1925,9 @@ class API:
         try:
             LOGGER.debug('Fetching id {}'.format(identifier))
             content = p.get(identifier, language=prv_locale,
-                            request=request)  # mine
+                            consumer_sso_id=request._dssoa_consumer_sso_id,
+                            consumer_acls=request._dssoa_consumer_acls,
+                            tolerance=request.params.get('tolerance', None))  # mine
         except ProviderConnectionError as err:
             LOGGER.error(err)
             msg = 'connection error (check logs)'
