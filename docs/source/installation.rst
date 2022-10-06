@@ -25,10 +25,11 @@ For developers and the truly impatient
    . bin/activate
    git clone https://github.com/geopython/pygeoapi.git
    cd pygeoapi
+   pip install --upgrade pip
    pip install -r requirements.txt
    python setup.py install
    cp pygeoapi-config.yml example-config.yml
-   vi example-config.yml
+   vi example-config.yml  # edit as required
    export PYGEOAPI_CONFIG=example-config.yml
    export PYGEOAPI_OPENAPI=example-openapi.yml
    pygeoapi openapi generate $PYGEOAPI_CONFIG > $PYGEOAPI_OPENAPI
@@ -48,11 +49,23 @@ pip
 Docker
 ------
 
+Using DockerHub
+^^^^^^^^^^^^^^^
+
 `Docker image <https://hub.docker.com/r/geopython/pygeoapi>`_
 
 .. code-block:: bash
 
    docker pull geopython/pygeoapi:latest
+   
+Using GitHub Container Registry   
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Docker image <https://github.com/geopython/pygeoapi/pkgs/container/pygeoapi>`_
+
+.. code-block:: bash
+
+   docker pull ghcr.io/geopython/pygeoapi:latest   
 
 Conda
 -----

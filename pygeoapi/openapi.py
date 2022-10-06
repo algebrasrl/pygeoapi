@@ -46,13 +46,13 @@ from pygeoapi.util import (filter_dict_by_key_value, get_provider_by_type,
 LOGGER = logging.getLogger(__name__)
 
 OPENAPI_YAML = {
-    'oapif': 'http://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml',  # noqa
-    'oapip': 'http://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi',
+    'oapif': 'https://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/ogcapi-features-1.yaml',  # noqa
+    'oapip': 'https://schemas.opengis.net/ogcapi/processes/part1/1.0/openapi',
     'oacov': 'https://raw.githubusercontent.com/tomkralidis/ogcapi-coverages-1/fix-cis/yaml-unresolved',  # noqa
     'oapit': 'https://raw.githubusercontent.com/opengeospatial/ogcapi-tiles/master/openapi/swaggerhub/tiles.yaml',  # noqa
     'oapimt': 'https://raw.githubusercontent.com/opengeospatial/ogcapi-tiles/master/openapi/swaggerhub/map-tiles.yaml',  # noqa
     'oapir': 'https://raw.githubusercontent.com/opengeospatial/ogcapi-records/master/core/openapi',  # noqa
-    'oaedr': 'http://schemas.opengis.net/ogcapi/edr/1.0/openapi', # noqa
+    'oaedr': 'https://schemas.opengis.net/ogcapi/edr/1.0/openapi', # noqa
     'oat': 'https://raw.githubusercontent.com/opengeospatial/ogcapi-tiles/master/openapi/swaggerHubUnresolved/ogc-api-tiles.yaml', # noqa
 }
 
@@ -63,7 +63,7 @@ def get_ogc_schemas_location(server_config):
 
     osl = server_config.get('ogc_schemas_location', None)
 
-    value = 'http://schemas.opengis.net'
+    value = 'https://schemas.opengis.net'
 
     if osl is not None:
         if osl.startswith('http'):
@@ -509,6 +509,28 @@ def get_oas_30(cfg):
                 }
             }
 
+            if p.editable:
+                LOGGER.debug('Provider is editable; adding post')
+                paths[items_path]['post'] = {
+                    'summary': 'Add {} items'.format(title),  # noqa
+                    'description': desc,
+                    'tags': [name],
+                    'operationId': 'add{}Features'.format(name.capitalize()),
+                    'consumes': ['application/json'],
+                    'produces': ['application/json'],
+                    'parameters': [{
+                        'in': 'body',
+                        'name': 'body',
+                        'description': 'Adds item to collection',
+                        'required': True,
+                    }],
+                    'responses': {
+                        '201': {'description': 'Successful creation'},
+                        '400': {'$ref': '{}#/components/responses/InvalidParameter'.format(OPENAPI_YAML['oapif'])},  # noqa
+                        '500': {'$ref': '{}#/components/responses/ServerError'.format(OPENAPI_YAML['oapif'])}  # noqa
+                    }
+                }
+
             if ptype == 'record':
                 paths[items_path]['get']['parameters'].append(
                     {'$ref': '{}/parameters/q.yaml'.format(OPENAPI_YAML['oapir'])})  # noqa
@@ -596,6 +618,47 @@ def get_oas_30(cfg):
                     }
                 }
             }
+
+            if p.editable:
+                LOGGER.debug('Provider is editable; adding put/delete')
+                paths['{}/items/{{featureId}}'.format(collection_name_path)]['put'] = {  # noqa
+                    'summary': 'Update {} items'.format(title),
+                    'description': desc,
+                    'tags': [name],
+                    'operationId': 'update{}Features'.format(name.capitalize()),  # noqa
+                    'consumes': ['application/json'],
+                    'produces': ['application/json'],
+                    'parameters': [
+                        {'$ref': '{}#/components/parameters/featureId'.format(OPENAPI_YAML['oapif'])},  # noqa
+                        {
+                            'in': 'body',
+                            'name': 'body',
+                            'description': 'Updates item in collection',
+                            'required': True,
+                        }
+                    ],
+                    'responses': {
+                        '204': {'description': 'Successful update'},
+                        '400': {'$ref': '{}#/components/responses/InvalidParameter'.format(OPENAPI_YAML['oapif'])},  # noqa
+                        '500': {'$ref': '{}#/components/responses/ServerError'.format(OPENAPI_YAML['oapif'])}  # noqa
+                    }
+                }
+                paths['{}/items/{{featureId}}'.format(collection_name_path)]['delete'] = {  # noqa
+                    'summary': 'Delete {} items'.format(title),
+                    'description': desc,
+                    'tags': [name],
+                    'operationId': 'delete{}Features'.format(name.capitalize()),  # noqa
+                    'produces': ['application/json'],
+                    'parameters': [
+                        {'$ref': '{}#/components/parameters/featureId'.format(OPENAPI_YAML['oapif'])},  # noqa
+                    ],
+                    'responses': {
+                        '200': {'description': 'Successful delete'},
+                        '400': {'$ref': '{}#/components/responses/InvalidParameter'.format(OPENAPI_YAML['oapif'])},  # noqa
+                        '500': {'$ref': '{}#/components/responses/ServerError'.format(OPENAPI_YAML['oapif'])}  # noqa
+                    }
+                }
+
         except ProviderTypeError:
             LOGGER.debug('collection is not feature based')
 
